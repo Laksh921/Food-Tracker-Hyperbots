@@ -1,0 +1,74 @@
+/* userPanel.css */
+.user-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.form-container {
+  background-color: white;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+}
+
+.title {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.meal-options {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 25px;
+}
+
+.radio-option {
+  font-size: 16px;
+  color: #555;
+}
+
+.submit-btn, .admin-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.submit-btn:hover {
+  background-color: #388e3c;
+}
+
+.admin-btn {
+  background-color: #2196f3;
+  color: white;
+}
+
+.admin-btn:hover {
+  background-color: #1976d2;
+}

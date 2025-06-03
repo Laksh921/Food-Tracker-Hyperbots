@@ -12,7 +12,7 @@ const SignupPage: React.FC = () => {
   const handleSignup = async () => {
     setError('');
 
-    const { data, error: signupError } = await supabase.auth.signUp({
+    const { error: signupError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
     });

@@ -12,7 +12,8 @@ const SignupPage: React.FC = () => {
   const handleSignup = async () => {
     setError('');
 
-    const { data, error: signupError } = await supabase.auth.signUp({
+    // 1. Sign up user
+    const { error: signupError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
     });
@@ -22,13 +23,18 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    // 2. Immediately sign in user after signup
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
 
-    if (sessionError || !sessionData.session) {
-      setError('Signup successful but no active session found.');
+    if (loginError) {
+      setError(loginError.message);
       return;
     }
 
+    // 3. Navigate to user page
     navigate('/user');
   };
 

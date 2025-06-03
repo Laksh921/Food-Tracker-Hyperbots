@@ -6,8 +6,8 @@ const UserPanel: React.FC = () => {
   const [name, setName] = useState('');
   const [mealType, setMealType] = useState('');
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch the currently logged-in user's email
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -21,7 +21,7 @@ const UserPanel: React.FC = () => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!name || !mealType) {
+    if (!name.trim() || !mealType) {
       alert('Please enter your name and select a meal type.');
       return;
     }
@@ -31,20 +31,25 @@ const UserPanel: React.FC = () => {
       return;
     }
 
+    setLoading(true);
+
     const { error } = await supabase
       .from('meal_preferences')
       .insert([
         {
-          name,
+          name: name.trim(),
           meal_type: mealType,
           email: userEmail,
         }
       ]);
 
+    setLoading(false);
+
     if (error) {
+      console.error('Insert error:', error);
       alert('Error submitting data: ' + error.message);
     } else {
-      alert(`Submitted:\nName: ${name}\nMeal: ${mealType}`);
+      alert(`Submitted:\nName: ${name.trim()}\nMeal: ${mealType}`);
       setName('');
       setMealType('');
     }
@@ -84,8 +89,19 @@ const UserPanel: React.FC = () => {
           </label>
         </div>
 
-        <button className="submit-btn" onClick={handleSubmit}>Submit</button>
-        <button className="admin-btn" onClick={() => window.location.href = '/admin'}>Go to Admin Panel</button>
+        <button
+          className="submit-btn"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? 'Submitting...' : 'Submit'}
+        </button>
+        <button
+          className="admin-btn"
+          onClick={() => window.location.href = '/admin'}
+        >
+          Go to Admin Panel
+        </button>
       </div>
     </div>
   );

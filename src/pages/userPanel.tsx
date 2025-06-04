@@ -31,6 +31,8 @@ const UserPanel: React.FC = () => {
       return;
     }
 
+    const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+
     setLoading(true);
 
     const { error } = await supabase
@@ -40,6 +42,7 @@ const UserPanel: React.FC = () => {
           name: name.trim(),
           meal_type: mealType,
           email: userEmail,
+          created_date: today, // ✅ explicitly insert created_date
         }
       ]);
 
@@ -96,6 +99,7 @@ const UserPanel: React.FC = () => {
         >
           {loading ? 'Submitting...' : 'Submit'}
         </button>
+
         <button
           className="admin-btn"
           onClick={() => window.location.href = '/admin'}

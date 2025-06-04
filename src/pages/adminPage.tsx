@@ -9,16 +9,17 @@ interface MealRecord {
   meal_type: 'veg' | 'non-veg';
   email: string;
   created_at: string;
+  created_date: string;
 }
 
 const AdminPanel: React.FC = () => {
   const [data, setData] = useState<MealRecord[]>([]);
   const [filterName, setFilterName] = useState('');
-  const [filterDate, setFilterDate] = useState(''); // YYYY-MM-DD
+  const [filterDate, setFilterDate] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check if logged-in user is admin
+  // ✅ Admin auth check
   useEffect(() => {
     const verifyAdmin = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -44,42 +45,49 @@ const AdminPanel: React.FC = () => {
     verifyAdmin();
   }, [navigate]);
 
-  // Fetch data with filters
+  // ✅ Fetch and patch data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
 
       let query = supabase
-  .from('meal_preferences')
-  .select('*')
-  .order('created_at', { ascending: false });
+        .from('meal_preferences')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-
-      // Filter by date range if filterDate is set
-      if (filterDate) {
-        const start = new Date(filterDate);
-        const end = new Date(filterDate);
-        end.setDate(end.getDate() + 1);
-
-        query = query.gte('created_at', start.toISOString()).lt('created_at', end.toISOString());
-      }
-
-      const { data, error } = await query;
+      const { data: rawData, error } = await query;
 
       if (error) {
         alert('Failed to load data: ' + error.message);
         setData([]);
-      } else {
-        setData(data || []);
+        setLoading(false);
+        return;
       }
 
+      // Log raw data (for debugging)
+      console.log('Raw data:', rawData);
+
+      // Always derive created_date from created_at
+      const patchedData = (rawData || []).map((item: any) => ({
+        ...item,
+        created_date: item.created_at?.split('T')[0] || '',
+      }));
+
+      console.log('Patched data:', patchedData);
+
+      // Apply date filter
+      const filteredByDate = filterDate
+        ? patchedData.filter((record) => record.created_date === filterDate)
+        : patchedData;
+
+      setData(filteredByDate);
       setLoading(false);
     };
 
     fetchData();
   }, [filterDate]);
 
-  // Delete entry
+  // ✅ Delete a record
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this entry?')) return;
 
@@ -91,7 +99,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // Filter by name (client-side)
+  // ✅ Filter by name (client-side)
   const filtered = filterName
     ? data.filter((record) => record.name.toLowerCase().includes(filterName.toLowerCase()))
     : data;
@@ -114,7 +122,6 @@ const AdminPanel: React.FC = () => {
           onChange={(e) => setFilterName(e.target.value)}
           className="input-box"
         />
-
         <input
           type="date"
           value={filterDate}
@@ -123,7 +130,7 @@ const AdminPanel: React.FC = () => {
         />
       </div>
 
-      {(filterName || filterDate) && (
+      {(filtered.length > 0 || filterName || filterDate) && (
         <div className="stats">
           <p><strong>Total Orders:</strong> {filtered.length}</p>
           <p><span className="veg-tag">Veg:</span> {vegCount}</p>
@@ -142,7 +149,7 @@ const AdminPanel: React.FC = () => {
               <th>Name</th>
               <th>Meal</th>
               <th>Email</th>
-              <th>Submitted At</th>
+              <th>Date</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -156,7 +163,7 @@ const AdminPanel: React.FC = () => {
                   </span>
                 </td>
                 <td>{record.email}</td>
-                <td>{new Date(record.created_at).toLocaleString()}</td>
+                <td>{record.created_date}</td>
                 <td>
                   <button className="delete-btn" onClick={() => handleDelete(record.id)}>
                     Delete

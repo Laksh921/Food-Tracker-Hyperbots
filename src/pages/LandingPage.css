@@ -1,0 +1,96 @@
+.landing-container {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(to bottom right, #e0f7fa, #fce4ec);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.landing-header h1 {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #222;
+}
+
+.landing-header p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-top: 0.5rem;
+}
+
+.btn-group {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-group button {
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-group button.outline {
+  background-color: white;
+  color: #4caf50;
+  border: 2px solid #4caf50;
+}
+
+.btn-group button:hover {
+  background-color: #45a049;
+}
+
+.btn-group button.outline:hover {
+  background-color: #f1f1f1;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.card {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card .icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.card p {
+  font-size: 0.95rem;
+  color: #666;
+  margin-top: 0.5rem;
+}

@@ -64,18 +64,11 @@ const AdminPanel: React.FC = () => {
         return;
       }
 
-      // Log raw data (for debugging)
-      console.log('Raw data:', rawData);
-
-      // Always derive created_date from created_at
       const patchedData = (rawData || []).map((item: any) => ({
         ...item,
         created_date: item.created_at?.split('T')[0] || '',
       }));
 
-      console.log('Patched data:', patchedData);
-
-      // Apply date filter
       const filteredByDate = filterDate
         ? patchedData.filter((record) => record.created_date === filterDate)
         : patchedData;
@@ -87,14 +80,22 @@ const AdminPanel: React.FC = () => {
     fetchData();
   }, [filterDate]);
 
-  // ✅ Delete a record
+  // ✅ Delete a record from Supabase and frontend
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this entry?')) return;
 
-    const { error } = await supabase.from('meal_preferences').delete().eq('id', id);
+    console.log('Attempting to delete ID:', id);
+
+    const { error } = await supabase
+      .from('meal_preferences')
+      .delete()
+      .eq('id', id);
+
     if (error) {
-      alert('Failed to delete: ' + error.message);
+      console.error('Supabase delete error:', error);
+      alert('Failed to delete from Supabase: ' + error.message);
     } else {
+      console.log('Successfully deleted from Supabase');
       setData((prev) => prev.filter((entry) => entry.id !== id));
     }
   };

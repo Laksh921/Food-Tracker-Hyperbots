@@ -333,3 +333,16 @@
     max-width: none;
   }
 }
+
+.edit-btn {
+  margin-left: 10px;
+  background: transparent;
+  border: none;
+  color: #0868c2;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-btn:hover {
+  text-decoration: underline;
+}

@@ -3,27 +3,41 @@ import './userPanel.css';
 import { supabase } from '../lib/supabaseClient';
 import logo from '../assets/hyprbots_systems_logo.jpeg';
 
+interface Submission {
+  id: string;
+  name: string;
+  meal_type: 'veg' | 'non-veg';
+  email: string;
+  created_date: string; // YYYY-MM-DD format
+}
+
 const UserPanel: React.FC = () => {
   const [name, setName] = useState('');
-  const [mealType, setMealType] = useState('');
+  const [mealType, setMealType] = useState<'veg' | 'non-veg' | ''>('');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [recentSubmissions, setRecentSubmissions] = useState<any[]>([]);
+  const [recentSubmissions, setRecentSubmissions] = useState<Submission[]>([]);
   const [filteredMeal, setFilteredMeal] = useState<'all' | 'veg' | 'non-veg'>('all');
   const [filterRange, setFilterRange] = useState<'7days' | 'month' | 'date'>('7days');
   const [filterDate, setFilterDate] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editSubmissionId, setEditSubmissionId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editMealType, setEditMealType] = useState<'veg' | 'non-veg'>('veg');
 
+  // Fetch current user email on mount
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
       if (error) console.error('Error fetching user:', error.message);
       else setUserEmail(user?.email ?? null);
     };
     fetchUser();
   }, []);
 
+  // Fetch submissions with filtering
   const fetchRecentSubmissions = async () => {
     if (!userEmail) return;
     let fromDate: string;
@@ -71,12 +85,15 @@ const UserPanel: React.FC = () => {
     fetchRecentSubmissions();
   }, [userEmail, filteredMeal, filterRange, filterDate]);
 
+  // Logout handler
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = '/';
   };
 
+  // Submit new preference
   const handleSubmit = async () => {
+    // IST time calculation
     const now = new Date();
     const istOffset = 5.5 * 60;
     const localOffset = now.getTimezoneOffset();
@@ -84,7 +101,7 @@ const UserPanel: React.FC = () => {
     const istHours = istTime.getHours();
 
     if (istHours >= 17) {
-      alert("Submissions are closed for today. Please try again after 12:00 AM IST.");
+      alert('Submissions are closed for today. Please try again after 12:00 AM IST.');
       return;
     }
 
@@ -97,49 +114,78 @@ const UserPanel: React.FC = () => {
       return;
     }
 
-    if (isEditing) {
-      const confirmUpdate = window.confirm('Are you sure you want to update this entry?');
-      if (!confirmUpdate) return;
-    }
-
     const today = new Date().toISOString().split('T')[0];
     setLoading(true);
-    let result;
-    if (isEditing && editingId) {
-      result = await supabase
-        .from('meal_preferences')
-        .update({ name: name.trim(), meal_type: mealType })
-        .eq('id', editingId)
-        .eq('email', userEmail);
-    } else {
-      result = await supabase.from('meal_preferences').insert([
-        {
-          name: name.trim(),
-          meal_type: mealType,
-          email: userEmail,
-          created_date: today,
-        },
-      ]);
-    }
+
+    const { error } = await supabase.from('meal_preferences').insert([
+      {
+        name: name.trim(),
+        meal_type: mealType,
+        email: userEmail,
+        created_date: today,
+      },
+    ]);
+
     setLoading(false);
-    const { error } = result;
+
     if (error) alert('Error submitting data: ' + error.message);
     else {
-      alert(`${isEditing ? 'Updated' : 'Submitted'}:\nName: ${name.trim()}\nMeal: ${mealType}`);
+      alert(`Submitted:\nName: ${name.trim()}\nMeal: ${mealType}`);
       setName('');
       setMealType('');
-      setIsEditing(false);
-      setEditingId(null);
       fetchRecentSubmissions();
     }
   };
 
-  const startEdit = (submission: any) => {
-    setName(submission.name);
-    setMealType(submission.meal_type);
-    setIsEditing(true);
-    setEditingId(submission.id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Helper function for current IST date and hour
+  const getCurrentISTDateAndHour = () => {
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const istOffset = 5.5 * 60 * 60000; // 5 hours 30 minutes in ms
+    const istTime = new Date(utc + istOffset);
+
+    const istDateStr = istTime.toISOString().split('T')[0]; // YYYY-MM-DD
+    const istHour = istTime.getHours();
+    return { istDateStr, istHour };
+  };
+
+  // Start editing a submission
+  const startEdit = (submission: Submission) => {
+    setEditSubmissionId(submission.id);
+    setEditName(submission.name);
+    setEditMealType(submission.meal_type);
+  };
+
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditSubmissionId(null);
+    setEditName('');
+    setEditMealType('veg');
+  };
+
+  // Save edits
+  const saveEdit = async () => {
+    if (!editName.trim() || !editMealType) {
+      alert('Please enter a valid name and select meal type.');
+      return;
+    }
+    if (!editSubmissionId) return;
+
+    setLoading(true);
+    const { error } = await supabase
+      .from('meal_preferences')
+      .update({ name: editName.trim(), meal_type: editMealType })
+      .eq('id', editSubmissionId);
+
+    setLoading(false);
+
+    if (error) {
+      alert('Error updating submission: ' + error.message);
+    } else {
+      alert('Submission updated successfully!');
+      cancelEdit();
+      fetchRecentSubmissions();
+    }
   };
 
   return (
@@ -154,16 +200,22 @@ const UserPanel: React.FC = () => {
             <span className="user-icon">👤</span>
             <span>{userEmail}</span>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>↩ Logout</button>
+          <button className="logout-btn" onClick={handleLogout}>
+            ↩ Logout
+          </button>
         </div>
       </div>
 
       <div className="main-section">
         <div className="form-container">
-          <h2 className="title">{isEditing ? '✏️ Edit Your Meal' : '🍽️ Daily Meal Preference'}</h2>
+          <h2 className="title">🍽️ Daily Meal Preference</h2>
           <p className="card-subtext">
             {`Select your food preference for ${new Date().toLocaleDateString('en-IN', {
-              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata'
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              timeZone: 'Asia/Kolkata',
             })}`}
           </p>
           <input
@@ -190,22 +242,9 @@ const UserPanel: React.FC = () => {
             </div>
           </div>
           <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Submitting...' : isEditing ? 'Update' : 'Submit'}
+            {loading ? 'Submitting...' : 'Submit'}
           </button>
-          {isEditing && (
-            <button
-              className="cancel-btn"
-              onClick={() => {
-                setName('');
-                setMealType('');
-                setIsEditing(false);
-                setEditingId(null);
-              }}
-            >
-              Cancel Edit
-            </button>
-          )}
-          <button className="admin-btn" onClick={() => window.location.href = '/admin'}>
+          <button className="admin-btn" onClick={() => (window.location.href = '/admin')}>
             Go to Admin Panel
           </button>
         </div>
@@ -214,10 +253,7 @@ const UserPanel: React.FC = () => {
           <div className="recent-header-with-filter">
             <h3>📋 Past Submissions</h3>
             <div className="filter-dropdown">
-              <select
-                value={filterRange}
-                onChange={(e) => setFilterRange(e.target.value as any)}
-              >
+              <select value={filterRange} onChange={(e) => setFilterRange(e.target.value as any)}>
                 <option value="7days">Past 7 Days</option>
                 <option value="month">Past Month</option>
                 <option value="date">Specific Date</option>
@@ -235,9 +271,15 @@ const UserPanel: React.FC = () => {
           </div>
 
           <div className="filter-buttons">
-            <button onClick={() => setFilteredMeal('all')} className={filteredMeal === 'all' ? 'active' : ''}>All</button>
-            <button onClick={() => setFilteredMeal('veg')} className={filteredMeal === 'veg' ? 'active' : ''}>Veg</button>
-            <button onClick={() => setFilteredMeal('non-veg')} className={filteredMeal === 'non-veg' ? 'active' : ''}>Non-Veg</button>
+            <button onClick={() => setFilteredMeal('all')} className={filteredMeal === 'all' ? 'active' : ''}>
+              All
+            </button>
+            <button onClick={() => setFilteredMeal('veg')} className={filteredMeal === 'veg' ? 'active' : ''}>
+              Veg
+            </button>
+            <button onClick={() => setFilteredMeal('non-veg')} className={filteredMeal === 'non-veg' ? 'active' : ''}>
+              Non-Veg
+            </button>
           </div>
 
           <div className="submission-count">Total: {recentSubmissions.length}</div>
@@ -247,18 +289,61 @@ const UserPanel: React.FC = () => {
               <p className="no-submission">No submissions found.</p>
             ) : (
               <ul>
-                {recentSubmissions.map((submission, idx) => (
-                  <li key={idx} className={`submission-card ${submission.meal_type}`}>
-                    <div className="submission-top">
-                      <span className="meal-icon">{submission.meal_type === 'veg' ? '🌱' : '🍗'}</span>
-                      <span className="submission-name">{submission.name}</span>
-                    </div>
-                    <div className="submission-date">
-                      {new Date(submission.created_date).toLocaleDateString('en-IN')}
-                    </div>
-                    <button className="edit-btn" onClick={() => startEdit(submission)}>✏️ Edit</button>
-                  </li>
-                ))}
+                {recentSubmissions.map((submission) => {
+                  const { istDateStr, istHour } = getCurrentISTDateAndHour();
+                  const isTodaySubmission = submission.created_date === istDateStr;
+                  const canEdit = isTodaySubmission && istHour >= 0 && istHour < 17;
+
+                  const isEditing = editSubmissionId === submission.id;
+
+                  return (
+                    <li key={submission.id} className={`submission-card ${submission.meal_type}`}>
+                      <div className="submission-top">
+                        <span className="meal-icon">{submission.meal_type === 'veg' ? '🌱' : '🍗'}</span>
+                        {isEditing ? (
+                          <>
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="edit-input-name"
+                            />
+                            <select
+                              value={editMealType}
+                              onChange={(e) => setEditMealType(e.target.value as 'veg' | 'non-veg')}
+                              className="edit-select-meal"
+                            >
+                              <option value="veg">Veg</option>
+                              <option value="non-veg">Non-Veg</option>
+                            </select>
+                            <button onClick={saveEdit} disabled={loading} className="save-btn">
+                              Save
+                            </button>
+                            <button onClick={cancelEdit} disabled={loading} className="cancel-btn">
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="submission-name">{submission.name}</span>
+                            {canEdit && (
+                              <button
+                                className="edit-btn"
+                                onClick={() => startEdit(submission)}
+                                title="Edit Submission"
+                              >
+                                ✏️ Edit
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className="submission-date">
+                        {new Date(submission.created_date).toLocaleDateString('en-IN')}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

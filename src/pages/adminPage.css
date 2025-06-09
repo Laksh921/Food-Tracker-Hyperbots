@@ -124,3 +124,72 @@
   color: #d35400;
   font-weight: bold;
 }
+
+@media (max-width: 768px) {
+  .admin-panel {
+    padding: 20px;
+    margin: 20px 10px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .nav-btn {
+    width: 100%;
+    font-size: 15px;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .input-box {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 10px;
+    font-size: 0.95rem;
+  }
+
+  .delete-btn {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-panel {
+    padding: 15px;
+  }
+
+  .nav-btn {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .input-box {
+    font-size: 0.95rem;
+    padding: 0.5rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .delete-btn {
+    font-size: 0.85rem;
+    padding: 5px 8px;
+  }
+}

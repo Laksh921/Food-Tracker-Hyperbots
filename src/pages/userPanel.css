@@ -1,5 +1,3 @@
-/* userPanel.css */
-
 .user-panel {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
@@ -332,7 +330,6 @@
   margin-left: 10px;
   background: transparent;
   border: none;
-  
   color: #0868c2;
   cursor: pointer;
   font-size: 14px;
@@ -372,6 +369,8 @@
 
   .main-section {
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
   }
 
@@ -380,6 +379,7 @@
     max-width: 100%;
     width: 100%;
     padding: 1.5rem;
+    margin: 0 auto;
   }
 
   .meal-options {
@@ -427,6 +427,16 @@
 }
 
 @media (max-width: 480px) {
+  .main-section {
+    padding: 1rem 0.5rem;
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
   .recent-header-with-filter {
     flex-direction: column;
     align-items: flex-start;

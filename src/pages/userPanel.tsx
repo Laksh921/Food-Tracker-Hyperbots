@@ -100,7 +100,7 @@ const UserPanel: React.FC = () => {
     const istTime = new Date(now.getTime() + (istOffset + localOffset) * 60000);
     const istHours = istTime.getHours();
 
-    if (istHours >= 17) {
+    if (istHours >= 16) {
       alert('Submissions are closed for today. Please try again after 12:00 AM IST.');
       return;
     }
@@ -217,6 +217,7 @@ const UserPanel: React.FC = () => {
               year: 'numeric',
               timeZone: 'Asia/Kolkata',
             })}`}
+            , before 4:00 PM.
           </p>
           <input
             className="input-field"
@@ -292,7 +293,7 @@ const UserPanel: React.FC = () => {
                 {recentSubmissions.map((submission) => {
                   const { istDateStr, istHour } = getCurrentISTDateAndHour();
                   const isTodaySubmission = submission.created_date === istDateStr;
-                  const canEdit = isTodaySubmission && istHour >= 0 && istHour < 17;
+                  const canEdit = isTodaySubmission && istHour >= 0 && istHour < 16;
 
                   const isEditing = editSubmissionId === submission.id;
 

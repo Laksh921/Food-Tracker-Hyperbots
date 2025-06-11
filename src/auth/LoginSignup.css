@@ -44,3 +44,17 @@ button:hover {
   color: red;
   margin-top: 0.5rem;
 }
+
+.link-text {
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+  margin-top: 10px;
+  display: inline-block;
+  transition: color 0.3s;
+}
+
+.link-text:hover {
+  color: #0056b3;
+}

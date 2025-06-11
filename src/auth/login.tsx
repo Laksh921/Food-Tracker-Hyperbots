@@ -57,6 +57,13 @@ const LoginPage: React.FC = () => {
         </span>
       </p>
 
+      <p>
+        <span className="link-text" onClick={() => navigate('/reset-password')}>
+          Forgot Password?
+        </span>
+      </p>
+
+
       {error && <p className="error">{error}</p>}
     </div>
   );

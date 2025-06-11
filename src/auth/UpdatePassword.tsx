@@ -1,5 +1,5 @@
 // pages/UpdatePassword.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import './ResetPassword.css';
@@ -11,6 +11,17 @@ const UpdatePassword: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Automatically extract and set session from URL hash
+    const setSessionFromUrl = async () => {
+      const { error } = await supabase.auth.exchangeCodeForSession(window.location.hash);
+      if (error) {
+        setError('Session error: ' + error.message);
+      }
+    };
+    setSessionFromUrl();
+  }, []);
+
   const handleUpdate = async () => {
     setMessage('');
     setError('');
@@ -20,9 +31,7 @@ const UpdatePassword: React.FC = () => {
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+    const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
       setError(error.message);

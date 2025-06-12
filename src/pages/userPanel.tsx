@@ -99,8 +99,9 @@ const UserPanel: React.FC = () => {
     const localOffset = now.getTimezoneOffset();
     const istTime = new Date(now.getTime() + (istOffset + localOffset) * 60000);
     const istHours = istTime.getHours();
+    const istMinutes = istTime.getMinutes();
 
-    if (istHours >= 16) {
+    if (istHours > 16 || (istHours === 16 && istMinutes >= 30)) {
       alert('Submissions are closed for today. Please try again after 12:00 AM IST.');
       return;
     }
@@ -217,7 +218,7 @@ const UserPanel: React.FC = () => {
               year: 'numeric',
               timeZone: 'Asia/Kolkata',
             })}`}
-            , before 4:00 PM.
+            , before 4:30 PM.
           </p>
           <input
             className="input-field"

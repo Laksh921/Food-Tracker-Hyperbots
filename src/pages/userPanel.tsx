@@ -24,6 +24,60 @@ const UserPanel: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editMealType, setEditMealType] = useState<'veg' | 'non-veg'>('veg');
 
+  const [nameSuggestions] = useState([
+  'Lakshya Bansal',
+  'Alena Sahoo',
+  'Shradhanjali Samal',
+  'Riddhi Deep',
+  'Ritu Jha',
+  'Akanksha Gupta',
+  'Preetam Baitharu',
+  'Sanjeevini Abhi',
+  'Pubaruna Pal',
+  'Swastik',
+  'Swadhin Sarangi',
+  'Tanisha Srivastava',
+  'Shreya',
+  'Ruhani Bose',
+  'Bhavna Sharma',
+  'Sujoy Dey',
+  'Iris Chatterjee',
+  'Vedant',
+  'Arpita',
+  'Sweta',
+  'Jahanvi',
+  'Bhairav',
+  'Raghav Bhatia',
+  'Kshitij',
+  'Sawani',
+  'Addya',
+  'Prasmita(Paris)',
+  'Tishya Mahi',
+  'Achyut',
+  'Shambhavi Palak',
+  'Nischay',
+  'Mayank Anand',
+  'Mannat Arora',
+  'Abhigna',
+  'Shivam',
+  'Ujjwal',
+  'Manisha Mishra',
+  'Tanishq Chauhan',
+  'Abhiman Gururani',
+  'Kashish Kandhari',
+  'Zorba Nandi',
+  'Aditi Kumar',
+  'Ishaan',
+  'Anjali',
+  'Abhigna (Abby)',
+  'Kurt Shrivastava',
+  'Sherry',
+  'Srishti'
+]);
+
+const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+const [showSuggestions, setShowSuggestions] = useState(false);
+
   // Fetch current user email on mount
   useEffect(() => {
     const fetchUser = async () => {
@@ -220,13 +274,56 @@ const UserPanel: React.FC = () => {
             })}`}
             , before 4:30 PM.
           </p>
-          <input
-            className="input-field"
-            type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <div className="autocomplete-wrapper">
+  <input
+    className="input-field"
+    type="text"
+    placeholder="Start typing your name"
+    value={name}
+    onChange={(e) => {
+      const inputValue = e.target.value;
+      setName(inputValue);
+      if (inputValue.trim() === '') {
+        setFilteredSuggestions([]);
+        setShowSuggestions(false);
+      } else {
+        const matches = nameSuggestions.filter((n) =>
+  n.toLowerCase().startsWith(inputValue.toLowerCase())
+        );
+        setFilteredSuggestions(matches);
+        setShowSuggestions(matches.length > 0);
+      }
+    }}
+    onFocus={() => {
+      if (name.trim() !== '') {
+        const matches = nameSuggestions.filter((n) =>
+  n.toLowerCase().startsWith(name.toLowerCase())
+        );
+        setFilteredSuggestions(matches);
+        setShowSuggestions(matches.length > 0);
+      }
+    }}
+    onBlur={() => {
+      setTimeout(() => setShowSuggestions(false), 100); // allow click
+    }}
+  />
+  {showSuggestions && (
+    <ul className="autocomplete-dropdown">
+      {filteredSuggestions.map((suggestion, index) => (
+        <li
+          key={index}
+          onClick={() => {
+            setName(suggestion);
+            setShowSuggestions(false);
+          }}
+        >
+          {suggestion}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
           <div className="meal-options">
             <div
               className={`meal-card ${mealType === 'veg' ? 'selected veg' : ''}`}

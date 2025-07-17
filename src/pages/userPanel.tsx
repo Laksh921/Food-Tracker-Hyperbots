@@ -311,14 +311,14 @@ const [showSuggestions, setShowSuggestions] = useState(false);
     <ul className="autocomplete-dropdown">
       {filteredSuggestions.map((suggestion, index) => (
         <li
-          key={index}
-          onClick={() => {
-            setName(suggestion);
-            setShowSuggestions(false);
-          }}
-        >
-          {suggestion}
-        </li>
+  key={index}
+  onMouseDown={() => {
+    setName(suggestion);
+    setShowSuggestions(false);
+  }}
+>
+  {suggestion}
+</li>
       ))}
     </ul>
   )}

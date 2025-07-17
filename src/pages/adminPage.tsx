@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import './adminPage.css';
@@ -16,6 +16,7 @@ const AdminPanel: React.FC = () => {
   const [data, setData] = useState<MealRecord[]>([]);
   const [filterName, setFilterName] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -45,7 +46,7 @@ const AdminPanel: React.FC = () => {
     verifyAdmin();
   }, [navigate]);
 
-  // ✅ Fetch and patch data
+  // ✅ Fetch and filter data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -69,22 +70,28 @@ const AdminPanel: React.FC = () => {
         created_date: item.created_at?.split('T')[0] || '',
       }));
 
-      const filteredByDate = filterDate
-        ? patchedData.filter((record) => record.created_date === filterDate)
-        : patchedData;
+      let filtered = patchedData;
 
-      setData(filteredByDate);
+      if (filterDate) {
+        filtered = filtered.filter((record) => record.created_date === filterDate);
+      }
+
+      if (filterMonth) {
+        filtered = filtered.filter((record) =>
+          record.created_at?.startsWith(filterMonth)
+        );
+      }
+
+      setData(filtered);
       setLoading(false);
     };
 
     fetchData();
-  }, [filterDate]);
+  }, [filterDate, filterMonth]);
 
-  // ✅ Delete a record from Supabase and frontend
+  // ✅ Delete record
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this entry?')) return;
-
-    console.log('Attempting to delete ID:', id);
 
     const { error } = await supabase
       .from('meal_preferences')
@@ -92,27 +99,41 @@ const AdminPanel: React.FC = () => {
       .eq('id', id);
 
     if (error) {
-      console.error('Supabase delete error:', error);
       alert('Failed to delete from Supabase: ' + error.message);
     } else {
-      console.log('Successfully deleted from Supabase');
       setData((prev) => prev.filter((entry) => entry.id !== id));
     }
   };
 
   // ✅ Filter by name (client-side)
-  const filtered = filterName
-    ? data.filter((record) => record.name.toLowerCase().includes(filterName.toLowerCase()))
-    : data;
+  const filtered = useMemo(() => {
+    return filterName
+      ? data.filter((record) =>
+          record.name.toLowerCase().includes(filterName.toLowerCase())
+        )
+      : data;
+  }, [filterName, data]);
 
   const vegCount = filtered.filter((r) => r.meal_type === 'veg').length;
   const nonVegCount = filtered.filter((r) => r.meal_type === 'non-veg').length;
+
+  // ✅ Monthly summary by user
+  const monthlyStats = useMemo(() => {
+    if (!filterMonth) return null;
+
+    const summary: { [name: string]: number } = {};
+    filtered.forEach((record) => {
+      summary[record.name] = (summary[record.name] || 0) + 1;
+    });
+
+    return summary;
+  }, [filtered, filterMonth]);
 
   return (
     <div className="admin-panel">
       <div className="header">
         <h2>Admin Panel</h2>
-        <button className="nav-btn" onClick={() => navigate('/')}>Go to User Panel</button>
+        <button className="btn nav-btn" onClick={() => navigate('/')}>Go to User Panel</button>
       </div>
 
       <div className="filters">
@@ -129,13 +150,30 @@ const AdminPanel: React.FC = () => {
           onChange={(e) => setFilterDate(e.target.value)}
           className="input-box"
         />
+        <input
+          type="month"
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+          className="input-box"
+        />
       </div>
 
-      {(filtered.length > 0 || filterName || filterDate) && (
+      {(filtered.length > 0 || filterName || filterDate || filterMonth) && (
         <div className="stats">
           <p><strong>Total Orders:</strong> {filtered.length}</p>
           <p><span className="veg-tag">Veg:</span> {vegCount}</p>
           <p><span className="non-veg-tag">Non-Veg:</span> {nonVegCount}</p>
+        </div>
+      )}
+
+      {filterMonth && monthlyStats && (
+        <div className="stats">
+          <h3>📊 Orders Summary for {filterMonth}</h3>
+          <ul>
+            {Object.entries(monthlyStats).map(([name, count]) => (
+              <li key={name}><strong>{name}:</strong> {count} orders</li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -166,7 +204,7 @@ const AdminPanel: React.FC = () => {
                 <td>{record.email}</td>
                 <td>{record.created_date}</td>
                 <td>
-                  <button className="delete-btn" onClick={() => handleDelete(record.id)}>
+                  <button className="btn delete-btn" onClick={() => handleDelete(record.id)}>
                     Delete
                   </button>
                 </td>

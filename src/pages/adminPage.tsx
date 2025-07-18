@@ -121,10 +121,26 @@ const AdminPanel: React.FC = () => {
   const monthlyStats = useMemo(() => {
     if (!filterMonth) return null;
 
-    const summary: { [name: string]: number } = {};
-    filtered.forEach((record) => {
-      summary[record.name] = (summary[record.name] || 0) + 1;
-    });
+    const summary: {
+  [name: string]: {
+    total: number;
+    veg: number;
+    nonVeg: number;
+  };
+} = {};
+
+filtered.forEach((record) => {
+  if (!summary[record.name]) {
+    summary[record.name] = { total: 0, veg: 0, nonVeg: 0 };
+  }
+
+  summary[record.name].total += 1;
+  if (record.meal_type === 'veg') {
+    summary[record.name].veg += 1;
+  } else {
+    summary[record.name].nonVeg += 1;
+  }
+});
 
     return summary;
   }, [filtered, filterMonth]);
@@ -169,11 +185,27 @@ const AdminPanel: React.FC = () => {
       {filterMonth && monthlyStats && (
         <div className="stats">
           <h3>📊 Orders Summary for {filterMonth}</h3>
-          <ul>
-            {Object.entries(monthlyStats).map(([name, count]) => (
-              <li key={name}><strong>{name}:</strong> {count} orders</li>
-            ))}
-          </ul>
+          <table className="summary-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Total Orders</th>
+      <th>Veg</th>
+      <th>Non-Veg</th>
+    </tr>
+  </thead>
+  <tbody>
+    {Object.entries(monthlyStats).map(([name, stats]) => (
+      <tr key={name}>
+        <td>{name}</td>
+        <td>{stats.total}</td>
+        <td style={{ color: 'green', fontWeight: 'bold' }}>{stats.veg}</td>
+        <td style={{ color: 'red', fontWeight: 'bold' }}>{stats.nonVeg}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
         </div>
       )}
 
